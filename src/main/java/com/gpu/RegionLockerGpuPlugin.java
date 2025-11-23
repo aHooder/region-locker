@@ -25,19 +25,15 @@
 package com.gpu;
 
 import com.google.inject.Provides;
-import com.gpu.runelite.GpuPlugin;
-import com.gpu.runelite.GpuPluginConfig;
 import javax.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
-import net.runelite.api.events.BeforeRender;
 import net.runelite.client.callback.ClientThread;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.EventBus;
-import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
+import net.runelite.client.plugins.gpu.GpuPluginConfig;
 
-@Slf4j
 @PluginDescriptor(
 	name = "Region Locker GPU",
 	description = "GPU plugin with unique shader for locked chunks",
@@ -46,34 +42,10 @@ import net.runelite.client.plugins.PluginDescriptor;
 	loadInSafeMode = false,
 	configName = "RegionGpuPlugin"
 )
+@Slf4j
 public class RegionLockerGpuPlugin extends Plugin
 {
-	// The idea with this was to create a minimal wrapper around the GpuPlugin,
-	// but there is unfortunately no way other than copying the entire plugin atm.
-	// This at least makes the plugin easier to maintain, as there are minimal
-	// edits to the copied source files.
-	// Changes made to the original:
-	// - Package renames
-	// - Remove the @PluginDescriptor from GpuPlugin
-	// - Make GpuPlugin#glProgram public
-	// - Rename GpuPluginConfig#GROUP to provide separate configs
-	// - Slight modifications to vert.glsl & frag.glsl
-
-	// Define a wrapper class to make startUp and shutDown accessible
-	private static class GpuPluginWrapper extends GpuPlugin
-	{
-		void start()
-		{
-			super.startUp();
-		}
-
-		void stop()
-		{
-			super.shutDown();
-		}
-	}
-
-	// This is region locker's own
+	// Share config with the GPU plugin
 	@Provides
 	GpuPluginConfig provideConfig(ConfigManager configManager)
 	{
@@ -87,10 +59,7 @@ public class RegionLockerGpuPlugin extends Plugin
 	private EventBus eventBus;
 
 	@Inject
-	private GpuPluginWrapper gpuPlugin;
-
-	@Inject
-	private RegionLockerAddon addon;
+	private ModifiedGpuPlugin gpuPlugin;
 
 	@Override
 	protected void startUp()
@@ -107,21 +76,6 @@ public class RegionLockerGpuPlugin extends Plugin
 		clientThread.invoke(() -> {
 			gpuPlugin.stop();
 			eventBus.unregister(gpuPlugin);
-			addon.reset();
 		});
-	}
-
-	@Subscribe
-	public void onBeforeRender(BeforeRender beforeRender)
-	{
-		try
-		{
-			// Update region locker's uniforms
-			addon.beforeRender(GpuPlugin.glProgram);
-		}
-		catch (Throwable ex)
-		{
-			log.error("Error updating region locker uniforms", ex);
-		}
 	}
 }
