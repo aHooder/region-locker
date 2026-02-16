@@ -152,11 +152,26 @@ public interface GpuPluginConfig extends Config
 		return ColorBlindMode.NONE;
 	}
 
+	@Range(
+		min = 0,
+		max = 100
+	)
+	@ConfigItem(
+		keyName = "colorBlindIntensity",
+		name = "Colorblindness intensity",
+		description = "Strength of the colorblindness correction effect.",
+		position = 9
+	)
+	default int colorBlindIntensity()
+	{
+		return 100;
+	}
+
 	@ConfigItem(
 		keyName = "brightTextures",
 		name = "Bright textures",
 		description = "Use old texture lighting method which results in brighter game textures.",
-		position = 9
+		position = 10
 	)
 	default boolean brightTextures()
 	{
@@ -167,7 +182,7 @@ public interface GpuPluginConfig extends Config
 		keyName = "unlockFps",
 		name = "Unlock FPS",
 		description = "Removes the 50 FPS cap for camera movement.",
-		position = 10
+		position = 11
 	)
 	default boolean unlockFps()
 	{
@@ -185,7 +200,7 @@ public interface GpuPluginConfig extends Config
 		keyName = "vsyncMode",
 		name = "Vsync mode",
 		description = "Method to synchronize frame rate with refresh rate.",
-		position = 11
+		position = 12
 	)
 	default SyncMode syncMode()
 	{
@@ -196,7 +211,7 @@ public interface GpuPluginConfig extends Config
 		keyName = "fpsTarget",
 		name = "FPS target",
 		description = "Target FPS when 'Unlock FPS' is enabled and 'Vsync mode' is off.",
-		position = 12
+		position = 13
 	)
 	@Range(
 		min = 1,
@@ -211,7 +226,7 @@ public interface GpuPluginConfig extends Config
 		keyName = "removeVertexSnapping",
 		name = "Remove vertex snapping",
 		description = "Removes vertex snapping from most animations.",
-		position = 13
+		position = 14
 	)
 	default boolean removeVertexSnapping()
 	{
