@@ -24,58 +24,51 @@
  */
 package com.gpu;
 
-import com.google.inject.Provides;
 import javax.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.client.callback.ClientThread;
-import net.runelite.client.config.ConfigManager;
-import net.runelite.client.eventbus.EventBus;
 import net.runelite.client.plugins.Plugin;
+import net.runelite.client.plugins.PluginDependency;
 import net.runelite.client.plugins.PluginDescriptor;
-import net.runelite.client.plugins.gpu.GpuPluginConfig;
+import net.runelite.client.plugins.gpu.GpuPlugin;
+import net.runelite.client.plugins.gpu.api.GpuApi;
 
 @PluginDescriptor(
 	name = "Region Locker GPU",
-	description = "GPU plugin with unique shader for locked chunks",
+	description = "GPU plugin extension with unique shader for locked chunks",
 	tags = {"fog", "draw distance", "chunk", "locker"},
-	conflicts = "GPU",
 	loadInSafeMode = false,
 	configName = "RegionGpuPlugin"
 )
+@PluginDependency(GpuPlugin.class)
 @Slf4j
 public class RegionLockerGpuPlugin extends Plugin
 {
-	// Share config with the GPU plugin
-	@Provides
-	GpuPluginConfig provideConfig(ConfigManager configManager)
-	{
-		return configManager.getConfig(GpuPluginConfig.class);
-	}
-
 	@Inject
 	private ClientThread clientThread;
 
 	@Inject
-	private EventBus eventBus;
+	private GpuApi gpuApi;
 
 	@Inject
-	private ModifiedGpuPlugin gpuPlugin;
+	private GpuPlugin gpuPlugin;
+
+	@Inject
+	private RegionLockerGpuExtension extension;
 
 	@Override
 	protected void startUp()
 	{
-		clientThread.invoke(() -> {
-			gpuPlugin.start();
-			eventBus.register(gpuPlugin);
+		clientThread.invokeLater(() -> {
+			gpuApi.registerExtension(gpuPlugin, extension);
 		});
 	}
 
 	@Override
 	protected void shutDown()
 	{
-		clientThread.invoke(() -> {
-			gpuPlugin.stop();
-			eventBus.unregister(gpuPlugin);
+		clientThread.invokeLater(() -> {
+			gpuApi.unregisterExtension(gpuPlugin, extension);
 		});
 	}
 }
